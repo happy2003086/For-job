@@ -1,0 +1,2 @@
+16290 afterNpthInitAsync noValue 1745924879113
+16290 Background false 1745925003223

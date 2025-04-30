@@ -41,38 +41,6 @@ def check_win(row, col, player):
             return True
     return False
 
-def check_threat(row, col, player):
-    """檢查是否有三子連線的威脅"""
-    opponent = 'O' if player == 'X' else 'X'
-    directions = [(1, 0), (0, 1), (1, 1), (1, -1)]
-    
-    for dr, dc in directions:
-        count = 0  # 計算對方棋子的數量
-        for i in range(1, 5):  # 先看這一方向
-            r, c = row + i * dr, col + i * dc
-            if 0 <= r < BOARD_SIZE and 0 <= c < BOARD_SIZE:
-                if board[r][c] == opponent:
-                    count += 1
-                elif board[r][c] == '.':
-                    break
-                else:
-                    count = 0
-                    break
-        for i in range(1, 5):  # 再看反方向
-            r, c = row - i * dr, col - i * dc
-            if 0 <= r < BOARD_SIZE and 0 <= c < BOARD_SIZE:
-                if board[r][c] == opponent:
-                    count += 1
-                elif board[r][c] == '.':
-                    break
-                else:
-                    count = 0
-                    break
-        
-        if count == 3:  # 三子威脅，返回高分
-            return True
-    return False
-
 def evaluate_position(row, col, player):
     """評估某個落點的分數"""
     if board[row][col] != '.':
@@ -82,38 +50,49 @@ def evaluate_position(row, col, player):
     score = 0
     directions = [(1, 0), (0, 1), (1, 1), (1, -1)]
     
-    # 優先進行防守
-    if check_threat(row, col, player):
-        return 10000  # 封鎖威脅
-    
     for dr, dc in directions:
         count = 1  
-        # 計算攻擊方向
+        open_ends = 0  # 活三、活四的關鍵
+
+        # 計算正方向
         for i in range(1, 5):
             r, c = row + i * dr, col + i * dc
             if 0 <= r < BOARD_SIZE and 0 <= c < BOARD_SIZE:
                 if board[r][c] == player:
                     count += 1
-                elif board[r][c] == opponent:
-                    break  
+                elif board[r][c] == '.':
+                    open_ends += 1
+                    break
+                else:
+                    break
         
-        # 計算防守方向
+        # 計算反方向
         for i in range(1, 5):
             r, c = row - i * dr, col - i * dc
             if 0 <= r < BOARD_SIZE and 0 <= c < BOARD_SIZE:
                 if board[r][c] == player:
                     count += 1
-                elif board[r][c] == opponent:
-                    break  
+                elif board[r][c] == '.':
+                    open_ends += 1
+                    break
+                else:
+                    break
 
         if count >= 5:
             return 100000  # 立即獲勝
         elif count == 4:
-            score += 1000
+            if open_ends == 2:
+                score += 10000  # 活四（兩端開放）
+            elif open_ends == 1:
+                score += 5000   # 死四（單端開放）
         elif count == 3:
-            score += 100
+            if open_ends == 2:
+                score += 1000   # 活三（兩端開放）
+            elif open_ends == 1:
+                score += 500    # 死三
         elif count == 2:
-            score += 10
+            if open_ends == 2:
+                score += 100    # 活二
 
     return score
 
@@ -124,15 +103,21 @@ def get_best_move():
 
     for row in range(BOARD_SIZE):
         for col in range(BOARD_SIZE):
-            # 進攻：首先檢查進攻分數
-            attack_score = evaluate_position(row, col, 'O')
-            if attack_score == 100000:  # 遊戲結束，已經贏了
-                return (row, col)
-            
-            # 防守：接著檢查是否有需要封鎖的位置
-            defense_score = evaluate_position(row, col, 'X')
-            total_score = attack_score + defense_score
+            if board[row][col] != '.':
+                continue  # 跳過已經有子的地方
 
+            # **進攻：優先嘗試獲勝**
+            attack_score = evaluate_position(row, col, 'O')
+            if attack_score >= 100000:
+                return (row, col)  # 直接獲勝
+
+            # **防守：如果對手快贏，強制防守**
+            defense_score = evaluate_position(row, col, 'X')
+            if defense_score >= 100000:
+                return (row, col)  # 立即封鎖
+
+            # **總分 = 進攻 + 防守**
+            total_score = attack_score + defense_score
             if total_score > best_score:
                 best_score = total_score
                 best_move = (row, col)

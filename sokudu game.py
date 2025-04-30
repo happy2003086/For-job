@@ -18,14 +18,16 @@ def is_valid(board, row, col, num):
     return True
 
 def print_board(board, trial_board, cursor_row, cursor_col):
-    # 格式化打印
+    # 格式化打印，確保每個格子寬度一致
     for row in range(9):
         for col in range(9):
-            if trial_board[row][col] != 0:
-                print(f"({trial_board[row][col]:2})", end=" ")  # 格式化寬度
-            else:
+            if board[row][col] != 0:  # 已確認的數字
+                print(f" {board[row][col]} ", end=" ")
+            elif trial_board[row][col] != 0:  # 試錯模式的數字
+                print(f"({trial_board[row][col]})", end=" ")
+            else:  # 空格
                 if row == cursor_row and col == cursor_col:
-                    print(f"[ . ]", end=" ")  # 用方框標示當前光標
+                    print(f"[ ]", end=" ")  # 用方框標示當前光標
                 else:
                     print(f" . ", end=" ")
             
@@ -34,8 +36,8 @@ def print_board(board, trial_board, cursor_row, cursor_col):
         print()
 
         if (row + 1) % 3 == 0 and row != 8:  # 每隔3行插入一個分隔線
-            print("------|-------|------")
-    print()  # 空行
+            print("-------+-------+-------")
+    print()
 
 def solve_sudoku(board):
     """回溯法求解數獨"""
@@ -85,12 +87,11 @@ def play_sudoku():
     while True:
         print_board(board, trial_board, cursor_row, cursor_col)
         
-        action = input("Press 'T' to try a number, 'C' to confirm it, or 'exit' to quit: ").strip().lower()
+        action = input("Press 'T' to try, 'C' to confirm, or 'exit' to quit: ").strip().lower()
 
         if action == "t":
             try:
                 num = int(input("Enter the number (1-9): "))
-                
                 if num < 1 or num > 9:
                     print("Number must be between 1 and 9. Please try again.")
                     continue
@@ -98,18 +99,16 @@ def play_sudoku():
                 print("Invalid input. Please enter valid integers.")
                 continue
 
-            if trial_board[cursor_row][cursor_col] != 0:
+            if board[cursor_row][cursor_col] != 0:
                 print("This spot is already filled! Try a different one.")
                 continue
 
-            # Set the number in trial mode (鉛筆模式)
             trial_board[cursor_row][cursor_col] = num
             print(f"Number {num} is tentatively placed at ({cursor_row}, {cursor_col}).")
         
         elif action == "c":
             try:
                 num = int(input("Enter the number (1-9): "))
-                
                 if num < 1 or num > 9:
                     print("Number must be between 1 and 9. Please try again.")
                     continue
@@ -123,32 +122,32 @@ def play_sudoku():
             
             if is_valid(board, cursor_row, cursor_col, num):
                 board[cursor_row][cursor_col] = num
-                trial_board[cursor_row][cursor_col] = 0  # Clear trial number once confirmed
+                trial_board[cursor_row][cursor_col] = 0
                 print("Correct choice!")
+            else:
+                print("Invalid number for this position!")
         
         elif action == "exit":
             print("Exiting the game.")
             break
 
         elif action == "w":
-            if cursor_row > 0:
-                cursor_row -= 1
+            cursor_row = max(0, cursor_row - 1)
         elif action == "s":
-            if cursor_row < 8:
-                cursor_row += 1
+            cursor_row = min(8, cursor_row + 1)
         elif action == "a":
-            if cursor_col > 0:
-                cursor_col -= 1
+            cursor_col = max(0, cursor_col - 1)
         elif action == "d":
-            if cursor_col < 8:
-                cursor_col += 1
+            cursor_col = min(8, cursor_col + 1)
         else:
             print("Invalid action. Please enter 'T', 'C', 'exit', or use 'WASD' to move.")
             continue
         
-        # Check if the board is solved
+        # 檢查是否完成
         if all(board[row][col] != 0 for row in range(9) for col in range(9)):
             print("Congratulations! You've solved the Sudoku!")
+            print_board(board, trial_board, cursor_row, cursor_col)
             break
 
-play_sudoku()
+if __name__ == "__main__":
+    play_sudoku()

@@ -2,7 +2,7 @@
 population_2019 = 7440000
 # 每年減少嘅人口數量
 annual_decrease = 40000
-# 預測未來 100 年嘅人口
+# 預測未來 10 年嘅人口
 years = 100
 populations = [population_2019]
 for i in range(1, years + 1):
