@@ -3,18 +3,18 @@ import random
 import sys
 import time
 
-# 初始化 Pygame
+# Initialize Pygame
 pygame.init()
 
-# 遊戲常量
-SCREEN_SIZE = 1200
+# Game constants
+SCREEN_SIZE = 600  # Smaller window size
 GRID_SIZE = 10
 CELL_SIZE = SCREEN_SIZE // GRID_SIZE
 MINE_COUNT = 15
 MARGIN = 2
-LONG_PRESS_TIME = 0.5  # 長按時間閾值(秒)
+LONG_PRESS_TIME = 0.5  # seconds threshold for long press
 
-# 顏色設定
+# Colors
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 GRAY = (192, 192, 192)
@@ -27,11 +27,11 @@ COLORS = [
     (0, 128, 128), BLACK, DARK_GRAY
 ]
 
-# 創建遊戲窗口
+# Create game window
 screen = pygame.display.set_mode((SCREEN_SIZE, SCREEN_SIZE))
-pygame.display.set_caption("觸屏踩地雷 (長按插旗)")
+pygame.display.set_caption("Touch Minesweeper (Long press to flag)")
 
-# 字體
+# Font setup
 font = pygame.font.SysFont('Arial', CELL_SIZE // 2)
 
 class Minesweeper:
@@ -58,7 +58,7 @@ class Minesweeper:
                     self.grid[y][x] = -1
                     mines_placed += 1
 
-                    # 更新周圍格子的數字
+                    # Update numbers around mines
                     for dy in [-1, 0, 1]:
                         for dx in [-1, 0, 1]:
                             nx, ny = x + dx, y + dy
@@ -75,10 +75,10 @@ class Minesweeper:
         
         self.revealed[y][x] = True
         
-        if self.grid[y][x] == -1:  # 踩到地雷
+        if self.grid[y][x] == -1:  # Hit a mine
             self.game_over = True
             self.reveal_all_mines()
-        elif self.grid[y][x] == 0:  # 空白格子，自動展開
+        elif self.grid[y][x] == 0:  # Empty cell, auto reveal neighbors
             for dy in [-1, 0, 1]:
                 for dx in [-1, 0, 1]:
                     self.reveal(x + dx, y + dy)
@@ -122,7 +122,7 @@ class Minesweeper:
                         text_rect = text.get_rect(center=rect.center)
                         screen.blit(text, text_rect)
                     elif self.grid[y][x] == -1:
-                        pygame.draw.circle(screen, WHITE, rect.center, CELL_SIZE // 4)  # 白色地雷
+                        pygame.draw.circle(screen, WHITE, rect.center, CELL_SIZE // 4)  # white mine
                 else:
                     pygame.draw.rect(screen, DARK_GRAY, rect)
                     if self.flagged[y][x]:
@@ -133,8 +133,8 @@ class Minesweeper:
                             (x * CELL_SIZE + CELL_SIZE // 2, y * CELL_SIZE + 3 * CELL_SIZE // 4)
                         ])
         
-        # 顯示長按提示
-        help_text = font.render("短按: 揭開格子  長按: 插旗", True, WHITE)
+        # Show press instructions
+        help_text = font.render("Tap: Reveal  Long press: Flag", True, WHITE)
         screen.blit(help_text, (10, SCREEN_SIZE - 30))
         
         if self.game_over:
@@ -142,19 +142,19 @@ class Minesweeper:
             overlay.fill((0, 0, 0, 128))
             screen.blit(overlay, (0, 0))
             
-            message = "你贏了!" if self.win else "遊戲結束!"
+            message = "You Win!" if self.win else "Game Over!"
             text = font.render(message, True, WHITE)
             text_rect = text.get_rect(center=(SCREEN_SIZE // 2, SCREEN_SIZE // 2))
             screen.blit(text, text_rect)
             
-            restart_text = font.render("點擊重新開始", True, WHITE)
+            restart_text = font.render("Click to Restart", True, WHITE)
             restart_rect = restart_text.get_rect(center=(SCREEN_SIZE // 2, SCREEN_SIZE // 2 + CELL_SIZE))
             screen.blit(restart_text, restart_rect)
 
-# 創建遊戲實例
+# Create game instance
 game = Minesweeper()
 
-# 遊戲主循環
+# Main game loop
 running = True
 while running:
     current_time = time.time()
@@ -164,30 +164,30 @@ while running:
             running = False
         
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1:  # 左鍵按下
+            if event.button == 1:  # Left button down
                 game.press_pos = (event.pos[0] // CELL_SIZE, event.pos[1] // CELL_SIZE)
                 game.press_start_time = current_time
         
         elif event.type == pygame.MOUSEBUTTONUP:
-            if event.button == 1 and game.press_pos:  # 左鍵釋放
+            if event.button == 1 and game.press_pos:  # Left button up
                 x, y = event.pos[0] // CELL_SIZE, event.pos[1] // CELL_SIZE
                 press_duration = current_time - game.press_start_time
                 
-                # 檢查是否在同一個格子上釋放
+                # Check if released on the same cell
                 if (x, y) == game.press_pos:
                     if game.game_over:
-                        game.reset_game()  # 遊戲結束後點擊重新開始
+                        game.reset_game()  # Restart game after over
                     elif press_duration >= LONG_PRESS_TIME:
-                        game.toggle_flag(x, y)  # 長按插旗
+                        game.toggle_flag(x, y)  # Long press flag
                     else:
-                        game.reveal(x, y)  # 短按揭開格子
+                        game.reveal(x, y)  # Short tap reveal
                 
                 game.press_pos = None
     
-    # 繪製遊戲
+    # Draw everything
     game.draw()
     
-    # 如果正在長按，顯示提示
+    # Highlight flag on long press
     if game.press_pos and (current_time - game.press_start_time) > LONG_PRESS_TIME:
         x, y = game.press_pos
         pygame.draw.rect(screen, RED, (
@@ -201,3 +201,4 @@ while running:
 
 pygame.quit()
 sys.exit()
+
