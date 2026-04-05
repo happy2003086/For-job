@@ -4,7 +4,7 @@ Chun's 駿仔 Python Portfolio
 🔥 精選代表作品
 以下係我最推薦你哋睇嘅幾個重點項目：
 
-best5inrow.py — 🔍 五子棋遊戲
+THEbest5inrow(hard only).py — 🔍 五子棋遊戲
 內置 AI 運用 Minimax 演算法 同 Alpha-Beta 剪枝 做決策，邏輯嚴密且反應迅速。介面流暢，挑戰腦力極限！
 
 flappy_bird.py — 🐦 經典小鳥飛翔
